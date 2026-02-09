@@ -1,0 +1,10 @@
+{
+  "log_sources": [
+    {
+      "name": "All Logs",
+      "path": "logs",
+      "index_prefix": "siem-logs",
+      "recursive": false
+    }
+  ]
+}

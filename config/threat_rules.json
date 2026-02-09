@@ -1,0 +1,44 @@
+{
+    "rules": [
+        {
+            "name": "Multiple Failed Logins",
+            "description": "Detects multiple failed login attempts",
+            "pattern": "failed.*login|authentication.*failed",
+            "time_window": "5m",
+            "threshold": 5,
+            "severity": "medium"
+        },
+        {
+            "name": "Port Scan Detection",
+            "description": "Detects potential port scanning activity",
+            "pattern": "port.*scan|connection.*refused",
+            "time_window": "2m",
+            "threshold": 10,
+            "severity": "high"
+        },
+        {
+            "name": "Suspicious IP Activity",
+            "description": "Detects activity from known malicious IPs",
+            "pattern": "suspicious.*ip|malicious.*source",
+            "time_window": "10m",
+            "threshold": 1,
+            "severity": "critical"
+        },
+        {
+            "name": "Privilege Escalation",
+            "description": "Detects potential privilege escalation attempts",
+            "pattern": "sudo.*fail|permission.*denied|unauthorized.*access",
+            "time_window": "1m",
+            "threshold": 3,
+            "severity": "high"
+        },
+        {
+            "name": "Malware Detection",
+            "description": "Detects potential malware activity",
+            "pattern": "malware|virus.*detected|trojan",
+            "time_window": "1m",
+            "threshold": 1,
+            "severity": "critical"
+        }
+    ]
+}

@@ -1,0 +1,4 @@
+{"timestamp": "2026-02-07T10:20:00Z", "level": "INFO", "source": "auth-service", "message": "User 'admin' logged in successfully from 192.168.1.200"}
+{"timestamp": "2026-02-07T10:20:15Z", "level": "WARN", "source": "auth-service", "message": "Failed login attempt for user 'root' from 192.168.1.250"}
+{"timestamp": "2026-02-07T10:20:16Z", "level": "ERROR", "source": "antivirus", "message": "Malware detected: Trojan.Generic.ED in file C:\\Users\\Dinesh\\Downloads\\suspicious.exe"}
+{"timestamp": "2026-02-07T10:20:30Z", "level": "CRITICAL", "source": "ids", "message": "Suspicious IP 203.0.113.55 detected attempting SQL injection on /api/users"}

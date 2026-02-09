@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIEM Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a2e;
+            color: #eee;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+            padding: 20px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #e94560;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+            border-left: 5px solid #e94560;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card h3 {
+            color: #e94560;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .stat-card .value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .panel {
+            background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .panel h2 {
+            color: #e94560;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #e94560;
+            padding-bottom: 10px;
+        }
+        
+        .alert-item {
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border-left: 5px solid;
+        }
+        
+        .alert-critical {
+            background: rgba(233, 69, 96, 0.2);
+            border-left-color: #e94560;
+        }
+        
+        .alert-high {
+            background: rgba(255, 165, 0, 0.2);
+            border-left-color: #ffa500;
+        }
+        
+        .alert-medium {
+            background: rgba(255, 215, 0, 0.2);
+            border-left-color: #ffd700;
+        }
+        
+        .alert-low {
+            background: rgba(0, 255, 0, 0.2);
+            border-left-color: #00ff00;
+        }
+        
+        .log-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .log-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .timestamp {
+            color: #888;
+            font-size: 0.8rem;
+        }
+        
+        .severity-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .severity-critical {
+            background: #e94560;
+        }
+        
+        .severity-high {
+            background: #ffa500;
+        }
+        
+        .severity-medium {
+            background: #ffd700;
+            color: #333;
+        }
+        
+        .severity-low {
+            background: #00ff00;
+            color: #333;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        .refresh-btn {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            transition: background 0.3s ease;
+        }
+        
+        .refresh-btn:hover {
+            background: #d63851;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .log-container {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .alert-container {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .no-data {
+            text-align: center;
+            color: #888;
+            padding: 20px;
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🛡️ SIEM Security Dashboard</h1>
+        </div>
+    </header>
+    
+    <div class="container">
+        <button class="refresh-btn" onclick="refreshData()">🔄 Refresh Data</button>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Alerts (24h)</h3>
+                <div class="value" id="total-alerts">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Logs (24h)</h3>
+                <div class="value" id="total-logs">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Critical Alerts</h3>
+                <div class="value" id="critical-alerts">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>High Severity Alerts</h3>
+                <div class="value" id="high-alerts">0</div>
+            </div>
+        </div>
+        
+        <div class="content-grid">
+            <div class="panel">
+                <h2>🚨 Recent Alerts</h2>
+                <div class="alert-container" id="alerts-container">
+                    <div class="no-data">Loading alerts...</div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>📋 Recent Logs</h2>
+                <div class="log-container" id="logs-container">
+                    <div class="no-data">Loading logs...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel full-width">
+            <h2>📊 Alert Severity Breakdown</h2>
+            <div class="chart-container">
+                <canvas id="severityChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let severityChart;
+        
+        function initChart() {
+            const ctx = document.getElementById('severityChart').getContext('2d');
+            severityChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Critical', 'High', 'Medium', 'Low'],
+                    datasets: [{
+                        data: [0, 0, 0, 0],
+                        backgroundColor: [
+                            '#e94560',
+                            '#ffa500',
+                            '#ffd700',
+                            '#00ff00'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#eee' }
+                        },
+                        tooltip: {
+                            bodyColor: '#111',
+                            titleColor: '#111'
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChartData(severityCounts) {
+            if (!severityChart) return;
+            severityChart.data.datasets[0].data = severityCounts;
+            severityChart.update();
+        }
+
+        function renderAlerts(alerts) {
+            const container = document.getElementById('alerts-container');
+            container.innerHTML = '';
+            if (!alerts || alerts.length === 0) {
+                container.innerHTML = '<div class="no-data">No alerts found.</div>';
+                return;
+            }
+
+            alerts.forEach(a => {
+                const div = document.createElement('div');
+                div.classList.add('alert-item');
+                const sev = (a.severity || '').toLowerCase();
+                if (sev === 'critical') div.classList.add('alert-critical');
+                else if (sev === 'high') div.classList.add('alert-high');
+                else if (sev === 'medium') div.classList.add('alert-medium');
+                else div.classList.add('alert-low');
+
+                const title = document.createElement('div');
+                title.innerHTML = `<strong>${escapeHtml(a.title || a.message || 'Alert')}</strong>`;
+                const meta = document.createElement('div');
+                meta.className = 'timestamp';
+                meta.textContent = (a.timestamp || '') + (a.source ? ` • ${a.source}` : '');
+                const msg = document.createElement('div');
+                msg.textContent = a.message || a.detail || '';
+                msg.style.marginTop = '8px';
+
+                div.appendChild(title);
+                if (a.severity) {
+                    const badge = document.createElement('span');
+                    badge.className = 'severity-badge severity-' + sev;
+                    badge.textContent = a.severity;
+                    title.appendChild(badge);
+                }
+                div.appendChild(meta);
+                div.appendChild(msg);
+
+                container.appendChild(div);
+            });
+        }
+
+        function renderLogs(logs) {
+            const container = document.getElementById('logs-container');
+            container.innerHTML = '';
+            if (!logs || logs.length === 0) {
+                container.innerHTML = '<div class="no-data">No logs found.</div>';
+                return;
+            }
+
+            logs.forEach(l => {
+                const div = document.createElement('div');
+                div.className = 'log-item';
+                const ts = document.createElement('div');
+                ts.className = 'timestamp';
+                ts.textContent = l.timestamp || '';
+                const text = document.createElement('pre');
+                text.style.whiteSpace = 'pre-wrap';
+                text.style.marginTop = '6px';
+                text.textContent = l.line || l.message || JSON.stringify(l);
+
+                div.appendChild(ts);
+                div.appendChild(text);
+                container.appendChild(div);
+            });
+        }
+
+        function setStats(totals) {
+            if (!totals) return;
+            document.getElementById('total-alerts').textContent = totals.alerts ?? 0;
+            document.getElementById('total-logs').textContent = totals.logs ?? 0;
+            document.getElementById('critical-alerts').textContent = totals.critical ?? 0;
+            document.getElementById('high-alerts').textContent = totals.high ?? 0;
+        }
+
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return String(unsafe).replace(/[&<>\"'`]/g, function (s) {
+                return ({
+                    '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', "'": '&#39;', '`': '&#96;'
+                })[s];
+            });
+        }
+
+        async function refreshData() {
+            const url = '/api/dashboard';
+            try {
+                const res = await fetch(url, { cache: 'no-store' });
+                if (!res.ok) throw new Error('Network response was not ok');
+                const data = await res.json();
+
+                // Expected shape: { totals: {...}, severity: [c,h,m,l], alerts: [...], logs: [...] }
+                setStats(data.totals);
+                updateChartData(data.severity || [0,0,0,0]);
+                renderAlerts(data.alerts || []);
+                renderLogs(data.logs || []);
+            } catch (err) {
+                // Fallback: show friendly no-data states and a mocked sample
+                console.warn('Failed to fetch dashboard data:', err);
+                document.getElementById('alerts-container').innerHTML = '<div class="no-data">Unable to load alerts.</div>';
+                document.getElementById('logs-container').innerHTML = '<div class="no-data">Unable to load logs.</div>';
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            refreshData();
+        });
+
+    </script>
+</body>
+</html>
